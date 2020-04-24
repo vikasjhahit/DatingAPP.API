@@ -27,8 +27,8 @@ namespace DatingApp.API.Controllers
             _repo = repo;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetUsers([FromQuery]UserParams userParams)
+        [HttpPost]
+        public async Task<IActionResult> GetUsers(UserParams userParams)
         {
             var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
@@ -104,5 +104,12 @@ namespace DatingApp.API.Controllers
             
             return BadRequest("Failed to like user");
         }
+
+        //[HttpGet]
+        //public async Task<IActionResult> UserNotFound ()
+        //{
+        //    string userNotFound = "User not exist...";
+        //    return Ok(userNotFound);
+        //}
     }
 }
