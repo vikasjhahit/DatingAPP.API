@@ -7,30 +7,37 @@ using DatingApp.API.Data;
 using DatingApp.API.Dtos;
 using DatingApp.API.Helpers;
 using DatingApp.API.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DatingApp.API.Controllers
 {
     [ServiceFilter(typeof(LogUserActivity))]
-    [Authorize]
+   // [Authorize]
     [Route("api/[controller]")]
-    [ApiController]
     public class UsersController : ControllerBase
     {
         private readonly IDatingRepository _repo;
         private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public UsersController(IDatingRepository repo, IMapper mapper)
+        public UsersController(IDatingRepository repo, IMapper mapper, IHttpContextAccessor httpContextAccessor)
         {
             _mapper = mapper;
             _repo = repo;
+            _httpContextAccessor = httpContextAccessor;
         }
 
-        [HttpPost]
-        public async Task<IActionResult> GetUsers(UserParams userParams)
+
+        [HttpGet]
+        public async Task<IActionResult> GetUsers([FromQuery]UserParams userParams)
         {
-            var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            //  var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+
+            var currentUser = _httpContextAccessor.HttpContext;
+            var currentUserId = int.Parse(currentUser.User.FindFirstValue(ClaimTypes.NameIdentifier));
 
             var userFromRepo = await _repo.GetUser(currentUserId);
 
@@ -64,17 +71,48 @@ namespace DatingApp.API.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(int id, UserForUpdateDto userForUpdateDto)
         {
-            if (id != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
-                return Unauthorized();
+            try
+            {
+                if (id != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+                {
+                    return Ok(new
+                    {
+                        Success = string.Empty,
+                        Message = "Update Failed"
+                    });
+                }
+                else
+                {
+                    var userFromRepo = await _repo.GetUser(id);
 
-            var userFromRepo = await _repo.GetUser(id);
+                    _mapper.Map(userForUpdateDto, userFromRepo);
 
-            _mapper.Map(userForUpdateDto, userFromRepo);
-
-            if (await _repo.SaveAll())
-                return NoContent();
-
-            throw new Exception($"Updating user {id} failed on save");
+                    if (await _repo.SaveAll())
+                    {
+                        return Ok(new
+                        {
+                            Success = "Success",
+                            Message = "Update Success"
+                        });
+                    }
+                    else
+                    {
+                        return Ok(new
+                        {
+                            Success = string.Empty,
+                            Message = "Update Failed"
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return Ok(new
+                {
+                    Success = string.Empty,
+                    Message = "Update Failed"
+                });
+            }
         }
 
         [HttpPost("{id}/like/{recipientId}")]
