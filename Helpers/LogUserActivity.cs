@@ -21,14 +21,12 @@ namespace DatingApp.API.Helpers
         {
             var resultContext = await next();
 
-            //var claimsIdentity = this.User.Identity as ClaimsIdentity;
-            //var userId = claimsIdentity.FindFirst(ClaimTypes.Name)?.Value;
-
-            var userId2 = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
-
+            //if (resultContext.HttpContext.Request.Path.Value != CommonConstant.registrationPath)
+            //{
+            //}
 
             var userId = int.Parse(resultContext.HttpContext.User
-                .FindFirst(ClaimTypes.NameIdentifier).Value);
+            .FindFirst(ClaimTypes.NameIdentifier).Value);
             var repo = resultContext.HttpContext.RequestServices.GetService<IDatingRepository>();
             var user = await repo.GetUser(userId);
             user.LastActive = DateTime.Now;

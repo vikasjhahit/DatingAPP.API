@@ -1,0 +1,40 @@
+Source: - https://www.youtube.com/watch?v=geEWd7mDlTI
+---------------------------------------------------------------------------------
+D:\visual stdio projects\VikasSourceCodeDev
+--------------------------------------------------
+npm install -g npm@latest
+npm cache verify
+npm i
+npm cache clean --force
+--------------------------------------------------
+https://materializecss.com/
+-------------------------------------------------
+Free hosting
+URL: http://member3.myasp.net/account/account_screen
+
+username:- vikasjha117
+pass;- vik***5
+email: v*****5@gmail.com
+
+-----------------------
+DESKTOP-2SH9GPT
+
+DOMAIN\DESKTOP-2SH9GPT
+
+@Output() removeHeaderComponent: EventEmitter<boolean> = new EventEmitter(); ----put inside service inside class
+this.quizService.removeHeaderComponent.emit(true); ----------------------------------------put inside source component where you want to inject  
+    this.quizService.removeHeaderComponent.subscribe(isValid => {--------------------------put inside target component
+      this.userDetails = this.helperservice.getUserFromLocalStorage(); //what you want to change
+	  });
+
+document.getElementById("dispaly-show-css")style.display = 'show';
+
+login --bottom 0 top 0 
+nothing == bottom 0 top unset
+regisrer --bottom unset top --0 
+
+[ngStyle]="{'top': loginRegisterClicked ? '0' : 'unset'}" 
+  [ngStyle]="{'bottom': registerMode ? 'unset' : '0' }"
+
+[routerLink]="['home/login']" routerLinkActive="active"
+

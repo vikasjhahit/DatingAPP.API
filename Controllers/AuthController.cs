@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
@@ -8,6 +10,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using DatingApp.API.Data;
 using DatingApp.API.Dtos;
+using DatingApp.API.Helpers;
 using DatingApp.API.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -33,69 +36,126 @@ namespace DatingApp.API.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(UserForRegisterDto userForRegisterDto)
         {
-            userForRegisterDto.Username = userForRegisterDto.Username.ToLower();
+            try
+            {
+                userForRegisterDto.Username = userForRegisterDto.Username.ToLower();
 
-            if (await _repo.UserExists(userForRegisterDto.Username))
-                return Ok("User not exist");
+                if (await _repo.UserExists(userForRegisterDto.Username))
+                    return Ok(CommonConstant.userAlreadyExist);
 
-            //  return CreatedAtRoute("UserNotFound", new { controller = "Users"}); 
+                var userToCreate = _mapper.Map<User>(userForRegisterDto);
 
-            var userToCreate = _mapper.Map<User>(userForRegisterDto);
+                var createdUser = await _repo.Register(userToCreate, userForRegisterDto.Password);
 
-            var createdUser = await _repo.Register(userToCreate, userForRegisterDto.Password);
+                var userToReturn = _mapper.Map<UserForDetailedDto>(createdUser);
 
-            var userToReturn = _mapper.Map<UserForDetailedDto>(createdUser);
-
-            return CreatedAtRoute("GetUser", new {controller = "Users", id = createdUser.Id}, userToReturn);
+                //  return CreatedAtRoute("GetUser", new { controller = "Users", id = createdUser.Id }, userToReturn);
+                return Ok(new
+                {
+                    status = CommonConstant.Success,
+                    message = CommonConstant.userRegistrationSuccess,
+                    user = userToReturn
+                });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new
+                {
+                    status = CommonConstant.Failure,
+                    message = CommonConstant.userRegistrationFail
+                });
+            }
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login(UserForLoginDto userForLoginDto)
         {
-            var userFromRepo = await _repo.Login(userForLoginDto.Username.ToLower(), userForLoginDto.Password);
+            try
+            {
+                var userFromRepo = await _repo.Login(userForLoginDto.Username.ToLower(), userForLoginDto.Password);
 
-            if (userFromRepo == null) {
+                if (userFromRepo == null)
+                {
+                    return Ok(new
+                    {
+                        status = CommonConstant.Failure,
+                        token = string.Empty,
+                        message = CommonConstant.invalidUserNamePassword
+                    });
+                }
+                else
+                {
+                    var claims = new[]
+                    {
+                        new Claim(ClaimTypes.NameIdentifier, userFromRepo.Id.ToString()),
+                        new Claim(ClaimTypes.Name, userFromRepo.Username)
+                    };
+
+                    var key = new SymmetricSecurityKey(Encoding.UTF8
+                        .GetBytes(_config.GetSection("AppSettings:Token").Value));
+
+                    var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+
+                    var tokenDescriptor = new SecurityTokenDescriptor
+                    {
+                        Subject = new ClaimsIdentity(claims),
+                        Expires = DateTime.Now.AddDays(1),
+                        SigningCredentials = creds
+                    };
+
+                    var tokenHandler = new JwtSecurityTokenHandler();
+
+                    var token = tokenHandler.CreateToken(tokenDescriptor);
+
+                    var user = _mapper.Map<UserForListDto>(userFromRepo);
+
+                    return Ok(new
+                    {
+                        status = CommonConstant.Success,
+                        token = tokenHandler.WriteToken(token),
+                        user = user
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
                 return Ok(new
                 {
+                    status = CommonConstant.Failure,
                     token = string.Empty,
-                    Message = "User Name or password is incorrect..."
+                    message = CommonConstant.loginFailed
                 });
             }
-            else
+        }
+
+        [HttpGet("getcountrylist")]
+        public List<CountryCityList> GetCountryList()
+        {
+
+            List<string> CountryList = new List<string>();
+            CultureInfo[] CInfoList = CultureInfo.GetCultures(CultureTypes.SpecificCultures);
+            List<CountryCityList> lstCountryCityList = new List<CountryCityList>();
+
+            foreach (CultureInfo CInfo in CInfoList)
             {
-            //  return Unauthorized();
-
-            var claims = new[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, userFromRepo.Id.ToString()),
-                new Claim(ClaimTypes.Name, userFromRepo.Username)
-            };
-
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8
-                .GetBytes(_config.GetSection("AppSettings:Token").Value));
-
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
-
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.Now.AddDays(1),
-                SigningCredentials = creds
-            };
-
-            var tokenHandler = new JwtSecurityTokenHandler();
-
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-
-            var user = _mapper.Map<UserForListDto>(userFromRepo);
-
-                return Ok(new
-            {
-                token = tokenHandler.WriteToken(token),
-                user
-            });
+                RegionInfo R = new RegionInfo(CInfo.LCID);
+                if (!(CountryList.Contains(R.EnglishName)))
+                {
+                    CountryList.Add(R.EnglishName);
+                }
             }
+
+            CountryList.Sort();
+
+            foreach (var item in CountryList)
+            {
+                CountryCityList objCountryCityList = new CountryCityList();
+                objCountryCityList.country = item;
+                objCountryCityList.cities = new List<string>() { "Mumbai", "Delhi", "Patna" };
+                lstCountryCityList.Add(objCountryCityList);
+            }
+
+            return lstCountryCityList;
         }
     }
 }

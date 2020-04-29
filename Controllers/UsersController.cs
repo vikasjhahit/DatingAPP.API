@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace DatingApp.API.Controllers
 {
@@ -65,20 +67,26 @@ namespace DatingApp.API.Controllers
 
             var userToReturn = _mapper.Map<UserForDetailedDto>(user);
 
-            return Ok(userToReturn);
+            return Ok(new
+            {
+                status = CommonConstant.Success,
+                message = CommonConstant.userRegistrationSuccess,
+                user = userToReturn
+            }) ;
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUser(int id, UserForUpdateDto userForUpdateDto)
+        public async Task<IActionResult> UpdateUser(int id, [FromBody]JObject json)
         {
             try
             {
+                UserForUpdateDto userForUpdateDto = JsonConvert.DeserializeObject<UserForUpdateDto>(json.ToString());
                 if (id != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
                 {
                     return Ok(new
                     {
                         Success = string.Empty,
-                        Message = "Update Failed"
+                        Message = CommonConstant.userDetailUpdateFail
                     });
                 }
                 else
@@ -91,16 +99,16 @@ namespace DatingApp.API.Controllers
                     {
                         return Ok(new
                         {
-                            Success = "Success",
-                            Message = "Update Success"
-                        });
+                            Success = CommonConstant.Success,
+                            Message = CommonConstant.userDetailUpdateSuccess
+                        }) ;
                     }
                     else
                     {
                         return Ok(new
                         {
                             Success = string.Empty,
-                            Message = "Update Failed"
+                            Message = CommonConstant.userDetailUpdateFail
                         });
                     }
                 }
@@ -110,7 +118,7 @@ namespace DatingApp.API.Controllers
                 return Ok(new
                 {
                     Success = string.Empty,
-                    Message = "Update Failed"
+                    Message = CommonConstant.userDetailUpdateFail
                 });
             }
         }
@@ -143,11 +151,5 @@ namespace DatingApp.API.Controllers
             return BadRequest("Failed to like user");
         }
 
-        //[HttpGet]
-        //public async Task<IActionResult> UserNotFound ()
-        //{
-        //    string userNotFound = "User not exist...";
-        //    return Ok(userNotFound);
-        //}
     }
 }
