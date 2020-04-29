@@ -30,7 +30,11 @@ namespace DatingApp.API.Controllers
         public async Task<IActionResult> GetMessage(int userId, int id)
         {
             if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
-                return Unauthorized();
+                return Ok(new
+                {
+                    Success = string.Empty,
+                    Message = CommonConstant.unAuthorizedUser
+                });
 
             var messageFromRepo = await _repo.GetMessage(id);
 
@@ -45,7 +49,11 @@ namespace DatingApp.API.Controllers
             [FromQuery]MessageParams messageParams)
         {
             if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
-                return Unauthorized();
+                return Ok(new
+                {
+                    Success = string.Empty,
+                    Message = CommonConstant.unAuthorizedUser
+                });
 
             messageParams.UserId = userId;
 
@@ -63,7 +71,11 @@ namespace DatingApp.API.Controllers
         public async Task<IActionResult> GetMessageThread(int userId, int recipientId)
         {
             if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
-                return Unauthorized();
+                return Ok(new
+                {
+                    Success = string.Empty,
+                    Message = CommonConstant.unAuthorizedUser
+                });
 
             var messagesFromRepo = await _repo.GetMessageThread(userId, recipientId);
 
@@ -78,15 +90,23 @@ namespace DatingApp.API.Controllers
             var sender = await _repo.GetUser(userId);
 
             if (sender.Id != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
-                return Unauthorized();
+                return Ok(new
+                {
+                    Success = string.Empty,
+                    Message = CommonConstant.unAuthorizedUser
+                });
 
             messageForCreationDto.SenderId = userId;
 
             var recipient = await _repo.GetUser(messageForCreationDto.RecipientId);
 
             if (recipient == null)
-                return BadRequest("Could not find user");
-            
+                return Ok(new
+                {
+                    Success = string.Empty,
+                    Message = CommonConstant.unAuthorizedUser
+                });
+
             var message = _mapper.Map<Message>(messageForCreationDto);
 
             _repo.Add(message);
@@ -104,7 +124,11 @@ namespace DatingApp.API.Controllers
         public async Task<IActionResult> DeleteMessage(int id, int userId)
         {
             if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
-                return Unauthorized();  
+                return Ok(new
+                {
+                    Success = string.Empty,
+                    Message = CommonConstant.unAuthorizedUser
+                });
 
             var messageFromRepo = await _repo.GetMessage(id);
 
@@ -127,12 +151,20 @@ namespace DatingApp.API.Controllers
         public async Task<IActionResult> MarkMessageAsRead(int userId, int id)
         {
             if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
-                return Unauthorized();  
+                return Ok(new
+                {
+                    Success = string.Empty,
+                    Message = CommonConstant.unAuthorizedUser
+                });
 
             var message = await _repo.GetMessage(id);
 
             if (message.RecipientId != userId)
-                return Unauthorized();
+                return Ok(new
+                {
+                    Success = string.Empty,
+                    Message = CommonConstant.unAuthorizedUser
+                });
 
             message.IsRead = true;
             message.DateRead = DateTime.Now;

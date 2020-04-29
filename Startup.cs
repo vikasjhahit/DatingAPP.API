@@ -72,23 +72,8 @@ namespace DatingApp.API
             services.AddTransient<Seed>();
             services.AddScoped<IAuthRepository, AuthRepository>();
             services.AddScoped<IDatingRepository, DatingRepository>();
-            //services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            //    .AddJwtBearer(options => {
-            //        options.RequireHttpsMetadata = false;
-            //        options.SaveToken = true;
-
-            //        options.TokenValidationParameters = new TokenValidationParameters
-            //        {
-            //            ValidateIssuerSigningKey = true,
-            //            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII
-            //                .GetBytes(Configuration.GetSection("AppSettings:Token").Value)),
-            //            ValidateIssuer = false,
-            //            ValidateAudience = false,
-            //            RequireExpirationTime = false
-            //        };
-
-            //    });
-
+            
+            //Authentication
             services.AddAuthentication(x =>
             {
                 x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

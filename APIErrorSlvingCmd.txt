@@ -1,40 +1,63 @@
 Source: - https://www.youtube.com/watch?v=geEWd7mDlTI
 ---------------------------------------------------------------------------------
 D:\visual stdio projects\VikasSourceCodeDev
---------------------------------------------------
-npm install -g npm@latest
-npm cache verify
-npm i
-npm cache clean --force
---------------------------------------------------
-https://materializecss.com/
--------------------------------------------------
-Free hosting
-URL: http://member3.myasp.net/account/account_screen
+------------------------------------------------
+For database migration:
+dotnet ef migrations add PhotoUpload
+dotnet ef database update
 
-username:- vikasjha117
-pass;- vik***5
-email: v*****5@gmail.com
+=================================================
 
------------------------
-DESKTOP-2SH9GPT
+https://localhost:44385/api/users
+{
+"PageNumber": 1
+"pageSize": 5
+}
 
-DOMAIN\DESKTOP-2SH9GPT
+Authorization
+Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIyIiwidW5pcXVlX25hbWUiOiJ2aWthcyIsIm5iZiI6MTU4NzgzNjI1MSwiZXhwIjoxNTg3OTIyNjUxLCJpYXQiOjE1ODc4MzYyNTF9.NlM8SDGLa1DClIsiUXf-gbRYBB6f7xhwAWV8Kmc7xBgxH1Qa_UEfGQVpJRJaWUYYtmdeWwhJMeuffxlStVAOXg
 
-@Output() removeHeaderComponent: EventEmitter<boolean> = new EventEmitter(); ----put inside service inside class
-this.quizService.removeHeaderComponent.emit(true); ----------------------------------------put inside source component where you want to inject  
-    this.quizService.removeHeaderComponent.subscribe(isValid => {--------------------------put inside target component
-      this.userDetails = this.helperservice.getUserFromLocalStorage(); //what you want to change
-	  });
+https://localhost:44385/api/auth/login
+{
+  "username": "vikas",
+  "password": "1234"
+}
 
-document.getElementById("dispaly-show-css")style.display = 'show';
+https://www.shutterstock.com/image-photo/asian-woman-wearing-white-sitting-coffee-1677063676
+{
+"City": "test",
+"Country": "test",
+"Interests": "test",
+"Introduction": "test",
+"LookingFor": "test"
+}
 
-login --bottom 0 top 0 
-nothing == bottom 0 top unset
-regisrer --bottom unset top --0 
 
-[ngStyle]="{'top': loginRegisterClicked ? '0' : 'unset'}" 
-  [ngStyle]="{'bottom': registerMode ? 'unset' : '0' }"
+try
+            {
 
-[routerLink]="['home/login']" routerLinkActive="active"
+            }
+            catch (Exception ex)
+            {
+
+            }
+resultContext.HttpContext.Request.Path.Value != "/api/users/getcountrylist"
+
+*******************cloudinary for photo upload**********************
+https://cloudinary.com/console/c-b498f79bc055cf9499347189f50e17
+Cloudanary id = vikaskumar405@gmail.com
+pass: default
+*****************************************
+
+
+
+
+
+
+
+
+
+
+
+
 
