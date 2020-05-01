@@ -1,7 +1,9 @@
 using System;
 using System.Linq;
 using System.Security.Claims;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using System.Xml.Schema;
 using AutoMapper;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
@@ -163,35 +165,93 @@ namespace DatingApp.API.Controllers
 
                 var user = await _repo.GetUser(userId);
 
-                if (!user.Photos.Any(p => p.Id == id))
-                    return Unauthorized();
-
-                var photoFromRepo = await _repo.GetPhoto(id);
-
-                if (photoFromRepo.IsMain)
-                    return BadRequest("This is already the main photo");
-
-                var currentMainPhoto = await _repo.GetMainPhotoForUser(userId);
-                currentMainPhoto.IsMain = false;
-
-                photoFromRepo.IsMain = true;
-
-                if (await _repo.SaveAll())
+                if (id == 0)
                 {
-                    return Ok(new
+                    if (user.Photos.Count > 0)
                     {
-                        status = CommonConstant.Success,
-                        message = CommonConstant.setMainPhotoSuccess
-                    });
+                        var currentMainPhoto = await _repo.GetMainPhotoForUser(userId);
+
+                        currentMainPhoto.IsMain = false;
+                        //var mainPhoto = user.Photos.Where(p => p.IsMain = true).FirstOrDefault();
+                        //mainPhoto.IsMain = false;
+                        if (await _repo.SaveAll())
+                        {
+                            return Ok(new
+                            {
+                                status = CommonConstant.Success,
+                                message = CommonConstant.setMainPhotoSuccess
+                            });
+                        }
+                        else
+                        {
+                            return Ok(new
+                            {
+                                status = CommonConstant.Failure,
+                                message = CommonConstant.setMainPhotoFail
+                            });
+                        }
+                    }
+                    else
+                    {
+                        return Ok(new
+                        {
+                            status = CommonConstant.Failure,
+                            message = CommonConstant.setMainPhotoFail
+                        });
+                    }
                 }
                 else
                 {
-                    return Ok(new
+
+                    if (!user.Photos.Any(p => p.Id == id))
                     {
-                        status = CommonConstant.Failure,
-                        message = CommonConstant.setMainPhotoFail
-                    });
+                        return Ok(new
+                        {
+                            status = CommonConstant.Failure,
+                            message = CommonConstant.unAuthorizedUser
+                        });
+                    }
+
+                    var photoFromRepo = await _repo.GetPhoto(id);
+
+                    if (photoFromRepo.IsMain)
+                    {
+                        return Ok(new
+                        {
+                            status = CommonConstant.Failure,
+                            message = CommonConstant.AlreadyMainPhoto
+                        });
+                    }
+
+                    var currentMainPhoto = await _repo.GetMainPhotoForUser(userId);
+                    if (currentMainPhoto == null)
+                    {
+                        photoFromRepo.IsMain = true;
+                    }
+                    else
+                    {
+                        currentMainPhoto.IsMain = false;
+                        photoFromRepo.IsMain = true;
+                    }
+
+                    if (await _repo.SaveAll())
+                    {
+                        return Ok(new
+                        {
+                            status = CommonConstant.Success,
+                            message = CommonConstant.setMainPhotoSuccess
+                        });
+                    }
+                    else
+                    {
+                        return Ok(new
+                        {
+                            status = CommonConstant.Failure,
+                            message = CommonConstant.setMainPhotoFail
+                        });
+                    }
                 }
+
             }
             catch (Exception ex)
             {
@@ -218,7 +278,11 @@ namespace DatingApp.API.Controllers
                 var user = await _repo.GetUser(userId);
 
                 if (!user.Photos.Any(p => p.Id == id))
-                    return Unauthorized();
+                    return Ok(new
+                    {
+                        Success = string.Empty,
+                        Message = CommonConstant.unAuthorizedUser
+                    });
 
                 var photoFromRepo = await _repo.GetPhoto(id);
 
@@ -234,7 +298,6 @@ namespace DatingApp.API.Controllers
                 if (photoFromRepo.PublicId != null)
                 {
                     var deleteParams = new DeletionParams(photoFromRepo.PublicId);
-
                     var result = _cloudinary.Destroy(deleteParams);
 
                     if (result.Result == "ok")

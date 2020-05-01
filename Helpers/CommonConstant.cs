@@ -25,6 +25,7 @@ namespace DatingApp.API.Helpers
         public static readonly string photoDeletedFail = "Could not delete the photo.";
         public static readonly string mainPhotoDeleteMsg = "You cannot delete your main photo";
         public static readonly string unAuthorizedUser = "Unauthorized User.";
+        public static readonly string AlreadyMainPhoto = "This is already the main photo.";
 
         public static readonly string registrationPath = "/api/users/getcountrylist";
 
