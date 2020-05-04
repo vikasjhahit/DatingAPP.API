@@ -127,15 +127,33 @@ namespace DatingApp.API.Controllers
         public async Task<IActionResult> LikeUser(int id, int recipientId)
         {
             if (id != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
-                return Unauthorized();
+            {
+                return Ok(new
+                {
+                    status = CommonConstant.Failure,
+                    message = CommonConstant.unAuthorizedUser
+                });
+            }
 
             var like = await _repo.GetLike(id, recipientId);
 
             if (like != null)
-                return BadRequest("You already like this user");
+            {
+                return Ok(new
+                {
+                    status = CommonConstant.Failure,
+                    message = CommonConstant.alreadyLiked
+                });
+            }
             
             if (await _repo.GetUser(recipientId) == null)
-                return NotFound();
+            {
+                return Ok(new
+                {
+                    status = CommonConstant.Failure,
+                    message = CommonConstant.unAuthorizedUser
+                });
+            }
 
             like = new Like
             {
@@ -146,9 +164,19 @@ namespace DatingApp.API.Controllers
             _repo.Add<Like>(like);
 
             if (await _repo.SaveAll())
-                return Ok();
-            
-            return BadRequest("Failed to like user");
+            {
+                return Ok(new
+                {
+                    Success = CommonConstant.Success
+                });
+            }
+            else
+            {
+                return Ok(new
+                {
+                    Success = CommonConstant.Failure
+                });
+            }
         }
 
     }

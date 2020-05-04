@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -32,16 +33,26 @@ namespace DatingApp.API.Controllers
             if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
                 return Ok(new
                 {
-                    Success = string.Empty,
-                    Message = CommonConstant.unAuthorizedUser
+                    success = CommonConstant.Failure,
+                    message = CommonConstant.unAuthorizedUser
                 });
 
             var messageFromRepo = await _repo.GetMessage(id);
 
             if (messageFromRepo == null)
-                return NotFound();
+            {
+                return Ok(new
+                {
+                    success = CommonConstant.Failure,
+                    message = CommonConstant.noMessage
+                });
+            }
 
-            return Ok(messageFromRepo);
+            return Ok(new
+            {
+                success = CommonConstant.Success,
+                message = messageFromRepo
+            });
         }
         
         [HttpGet]
@@ -49,11 +60,13 @@ namespace DatingApp.API.Controllers
             [FromQuery]MessageParams messageParams)
         {
             if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+            {
                 return Ok(new
                 {
-                    Success = string.Empty,
-                    Message = CommonConstant.unAuthorizedUser
+                    success = CommonConstant.Failure,
+                    message = CommonConstant.unAuthorizedUser
                 });
+            }
 
             messageParams.UserId = userId;
 
@@ -63,8 +76,12 @@ namespace DatingApp.API.Controllers
 
             Response.AddPagination(messagesFromRepo.CurrentPage, messagesFromRepo.PageSize, 
                 messagesFromRepo.TotalCount, messagesFromRepo.TotalPages);
-            
-            return Ok(messages);
+
+            return Ok(new
+            {
+                success = CommonConstant.Success,
+                message = messages.OrderBy(m => m.MessageSent)
+            });
         }
 
         [HttpGet("thread/{recipientId}")]
@@ -73,15 +90,19 @@ namespace DatingApp.API.Controllers
             if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
                 return Ok(new
                 {
-                    Success = string.Empty,
-                    Message = CommonConstant.unAuthorizedUser
+                    success = CommonConstant.Success,
+                    message = CommonConstant.unAuthorizedUser
                 });
 
             var messagesFromRepo = await _repo.GetMessageThread(userId, recipientId);
 
             var messageThread = _mapper.Map<IEnumerable<MessageToReturnDto>>(messagesFromRepo);
 
-            return Ok(messageThread);
+            return Ok(new
+            {
+                success = CommonConstant.Success,
+                messages = messageThread.OrderBy(m => m.MessageSent)
+            });
         }
 
         [HttpPost]
@@ -90,22 +111,26 @@ namespace DatingApp.API.Controllers
             var sender = await _repo.GetUser(userId);
 
             if (sender.Id != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+            {
                 return Ok(new
                 {
-                    Success = string.Empty,
-                    Message = CommonConstant.unAuthorizedUser
+                    success = CommonConstant.Failure,
+                    message = CommonConstant.unAuthorizedUser
                 });
+            }
 
             messageForCreationDto.SenderId = userId;
 
             var recipient = await _repo.GetUser(messageForCreationDto.RecipientId);
 
             if (recipient == null)
+            {
                 return Ok(new
                 {
-                    Success = string.Empty,
-                    Message = CommonConstant.unAuthorizedUser
+                    success = string.Empty,
+                    message = CommonConstant.unAuthorizedUser
                 });
+            }
 
             var message = _mapper.Map<Message>(messageForCreationDto);
 
@@ -114,7 +139,13 @@ namespace DatingApp.API.Controllers
             if (await _repo.SaveAll())
             {
                 var messageToReturn = _mapper.Map<MessageToReturnDto>(message);
-                return CreatedAtRoute("GetMessage", new {id = message.Id}, messageToReturn);
+                // return CreatedAtRoute("GetMessage", new {id = message.Id}, messageToReturn);
+                return Ok(new
+                {
+                    success = CommonConstant.Success,
+                    message = messageToReturn
+                });
+
             }
 
             throw new Exception("Creating the message failed on save");
@@ -124,11 +155,13 @@ namespace DatingApp.API.Controllers
         public async Task<IActionResult> DeleteMessage(int id, int userId)
         {
             if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+            {
                 return Ok(new
                 {
-                    Success = string.Empty,
-                    Message = CommonConstant.unAuthorizedUser
+                    muccess = string.Empty,
+                    message = CommonConstant.unAuthorizedUser
                 });
+            }
 
             var messageFromRepo = await _repo.GetMessage(id);
 
@@ -142,9 +175,21 @@ namespace DatingApp.API.Controllers
                 _repo.Delete(messageFromRepo);
             
             if (await _repo.SaveAll())
-                return NoContent();
-
-            throw new Exception("Error deleting the message");
+            {
+                return Ok(new
+                {
+                    success = CommonConstant.Success,
+                    message = CommonConstant.msgDeleted
+                });
+            }
+            else
+            {
+                return Ok(new
+                {
+                    success = CommonConstant.Failure,
+                    message = CommonConstant.msgDeleteFail
+                });
+            }
         }
 
         [HttpPost("{id}/read")]
@@ -153,8 +198,8 @@ namespace DatingApp.API.Controllers
             if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
                 return Ok(new
                 {
-                    Success = string.Empty,
-                    Message = CommonConstant.unAuthorizedUser
+                    success = string.Empty,
+                    message = CommonConstant.unAuthorizedUser
                 });
 
             var message = await _repo.GetMessage(id);
@@ -162,8 +207,8 @@ namespace DatingApp.API.Controllers
             if (message.RecipientId != userId)
                 return Ok(new
                 {
-                    Success = string.Empty,
-                    Message = CommonConstant.unAuthorizedUser
+                    success = string.Empty,
+                    message = CommonConstant.unAuthorizedUser
                 });
 
             message.IsRead = true;
@@ -171,7 +216,10 @@ namespace DatingApp.API.Controllers
 
             await _repo.SaveAll();
 
-            return NoContent();
+            return Ok(new
+            {
+                success = CommonConstant.Success
+            });
         }
     }
 }
