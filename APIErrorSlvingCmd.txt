@@ -1,0 +1,74 @@
+Source: - https://www.youtube.com/watch?v=geEWd7mDlTI
+---------------------------------------------------------------------------------
+D:\visual stdio projects\VikasSourceCodeDev
+------------------------------------------------
+For database migration:
+dotnet ef migrations add PhotoUpload
+dotnet ef database update
+
+=================================================
+
+https://localhost:44385/api/users
+{
+"PageNumber": 1
+"pageSize": 5
+}
+
+Authorization
+Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIyIiwidW5pcXVlX25hbWUiOiJ2aWthcyIsIm5iZiI6MTU4NzgzNjI1MSwiZXhwIjoxNTg3OTIyNjUxLCJpYXQiOjE1ODc4MzYyNTF9.NlM8SDGLa1DClIsiUXf-gbRYBB6f7xhwAWV8Kmc7xBgxH1Qa_UEfGQVpJRJaWUYYtmdeWwhJMeuffxlStVAOXg
+
+https://localhost:44385/api/auth/login
+{
+  "username": "vikas",
+  "password": "1234"
+}
+
+https://www.shutterstock.com/image-photo/asian-woman-wearing-white-sitting-coffee-1677063676
+{
+"City": "test",
+"Country": "test",
+"Interests": "test",
+"Introduction": "test",
+"LookingFor": "test"
+}
+
+
+try
+            {
+
+            }
+            catch (Exception ex)
+            {
+
+            }
+resultContext.HttpContext.Request.Path.Value != "/api/users/getcountrylist"
+
+*******************cloudinary for photo upload**********************
+https://cloudinary.com/console/c-b498f79bc055cf9499347189f50e17
+Cloudanary id = vikaskumar405@gmail.com
+pass: default
+*****************************************
+experience letter / relieving letter
+"not found"
+======================check photo on Cloudinary====================================
+private Cloudinary _cloudinary;
+constructor(IOptions<CloudinarySettings> cloudinaryConfig){
+_cloudinaryConfig = cloudinaryConfig;
+}
+ var result = _cloudinary.GetResource(photoFromRepo.PublicId);
+
+if (result.Result == "ok")
+                    {
+                        _repo.Delete(photoFromRepo);
+                    }
+============================================================
+
+
+
+
+
+
+
+
+
+
