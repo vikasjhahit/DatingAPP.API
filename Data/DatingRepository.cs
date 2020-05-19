@@ -2,20 +2,33 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CloudinaryDotNet;
 using DatingApp.API.Helpers;
 using DatingApp.API.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace DatingApp.API.Data
 {
     public class DatingRepository : IDatingRepository
     {
         private readonly DataContext _context;
-        public DatingRepository(DataContext context)
+        private readonly IOptions<CloudinarySettings> _cloudinaryConfig;
+        private Cloudinary _cloudinary;
+        public DatingRepository(DataContext context, IOptions<CloudinarySettings> cloudinaryConfig)
         {
             _context = context;
+            _cloudinaryConfig = cloudinaryConfig;
+
+            Account acc = new Account(
+                _cloudinaryConfig.Value.CloudName,
+                _cloudinaryConfig.Value.ApiKey,
+                _cloudinaryConfig.Value.ApiSecret
+            );
+
+            _cloudinary = new Cloudinary(acc);
         }
-        public void Add<T>(T entity) where T : class
+    public void Add<T>(T entity) where T : class
         {
             _context.Add(entity);
         }
@@ -46,7 +59,21 @@ namespace DatingApp.API.Data
 
         public async Task<User> GetUser(int id)
         {
+            List<Photo> lstPhoto = new List<Photo>();
             var user = await _context.Users.Include(p => p.Photos).FirstOrDefaultAsync(u => u.Id == id);
+            if (user != null && user.Photos != null && user.Photos.Count > 0)
+            {
+                var userAllPhotoList = user.Photos;
+                foreach (var photo in userAllPhotoList)
+                {
+                    var isImageExistOnCloudinary = _cloudinary.GetResource(photo.PublicId);
+                    if (isImageExistOnCloudinary.Length > 0)
+                    {
+                        lstPhoto.Add(photo);
+                    }
+                }
+                user.Photos = lstPhoto;
+            }
 
             return user;
         }
